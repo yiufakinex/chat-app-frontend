@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useGetUser } from '../api/UserApi';
 import { toast } from 'sonner';
+import { AlertCircle } from 'lucide-react';
 
 const BE_BASE_URL = process.env.REACT_APP_AUTH_BASE_URL;
-
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
@@ -13,10 +13,25 @@ const LoginPage: React.FC = () => {
     const { data, error: userError } = useGetUser();
 
     useEffect(() => {
+        console.log('Current URL:', window.location.href);
+        console.log('Search params:', location.search);
 
-        const urlError = new URLSearchParams(location.search).get('error');
+        const urlParams = new URLSearchParams(location.search);
+        const urlError = urlParams.get('error');
+
+        console.log('URL Error param:', urlError);
+
         if (urlError) {
-            setError(urlError);
+            const decodedError = decodeURIComponent(urlError);
+            console.log('Decoded error:', decodedError);
+            setError(decodedError);
+
+
+            urlParams.delete('error');
+            const newUrl = urlParams.toString()
+                ? `${window.location.pathname}?${urlParams.toString()}`
+                : window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
         }
     }, [location.search]);
 
@@ -38,20 +53,24 @@ const LoginPage: React.FC = () => {
 
     const handleLogin = (provider: 'google' | 'github' | 'discord') => {
         try {
-
             window.location.href = `${BE_BASE_URL}/oauth2/authorization/${provider}`;
         } catch (err) {
             setError('Failed to initiate login. Please try again.');
         }
     };
 
-
-
     return (
         <div className="min-h-screen bg-gray-900 flex flex-col justify-center items-center p-4">
             {error && (
-                <div className="bg-red-500 text-white px-4 py-2 rounded-md mb-6">
-                    {error}
+                <div className="flex items-start w-full max-w-md mb-4 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400">
+                    <AlertCircle className="h-5 w-5 mt-0.5 mr-2 flex-shrink-0" />
+                    <div className="space-y-1">
+                        <p className="text-sm leading-relaxed">{error}</p>
+                        <p className="text-xs opacity-90">
+                            Each email can only be used with one login provider.
+                            Please use the provider mentioned above.
+                        </p>
+                    </div>
                 </div>
             )}
 

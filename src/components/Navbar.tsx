@@ -1,30 +1,34 @@
 import React from 'react';
+import { User } from '../types/User';
 
-interface NavBarProp {
-    loggedIn: boolean
+interface NavbarProps {
+    user: User | null;
 }
 
-const Navbar: React.FC<NavBarProp> = (props: NavBarProp) => {
+const Navbar: React.FC<NavbarProps> = ({ user }) => {
+    const isLoggedIn = Boolean(user);
+
     return (
-        <>
-            <nav className="navbar navbar-expand-sm navbar-dark bg-black">
-                <div className="container-fluid">
-                    <a className="navbar-brand mx-3" href="/" title="Home">
-                        <img src="https://cdn.vectorstock.com/i/1000x1000/42/72/cute-funny-yeti-monster-character-with-question-vector-38094272.webp" alt="Logo" height="40" width="40" className="d-inline-block align-text-top rounded-circle" />
-                    </a>
-                    {(props.loggedIn) ?
-                        <form className="form-signin" method="post" action="/logout">
-                            <input className="btn btn-light mx-3" type="submit" value="Log Out" />
-                        </form>
-                        :
-                        <a className="btn btn-light mx-3" href="/login">
-                            Login
-                        </a>
-                    }
+        <nav className="bg-black shadow">
+            <div className="max-w-7xl mx-auto px-4">
+                <div className="flex justify-between h-16">
+                    <div className="flex">
+                        <div className="flex-shrink-0 flex items-center">
+                            <img src="https://cdn.vectorstock.com/i/1000x1000/42/72/cute-funny-yeti-monster-character-with-question-vector-38094272.webp" alt="Logo" height="40" width="40" className="d-inline-block align-text-top rounded-circle" />
+                            <span className="text-white text-xl font-bold">Chat App</span>
+                        </div>
+                    </div>
+                    <div className="flex items-center">
+                        {isLoggedIn && (
+                            <span className="text-gray-700">
+                                Welcome, {user?.displayName || user?.username}
+                            </span>
+                        )}
+                    </div>
                 </div>
-            </nav>
-        </>
+            </div>
+        </nav>
     );
-}
+};
 
 export default Navbar;

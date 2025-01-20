@@ -12,20 +12,14 @@ const LoginPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const { data, error: userError } = useGetUser();
 
-    useEffect(() => {
-        console.log('Current URL:', window.location.href);
-        console.log('Search params:', location.search);
 
+    useEffect(() => {
         const urlParams = new URLSearchParams(location.search);
         const urlError = urlParams.get('error');
 
-        console.log('URL Error param:', urlError);
-
         if (urlError) {
             const decodedError = decodeURIComponent(urlError);
-            console.log('Decoded error:', decodedError);
             setError(decodedError);
-
 
             urlParams.delete('error');
             const newUrl = urlParams.toString()
@@ -40,7 +34,7 @@ const LoginPage: React.FC = () => {
             if (data.newUser) {
                 navigate('/register');
             } else if (data.loggedIn) {
-                navigate('/');
+                navigate('/chat-app');
             }
         }
     }, [data, navigate]);
@@ -53,9 +47,16 @@ const LoginPage: React.FC = () => {
 
     const handleLogin = (provider: 'google' | 'github' | 'discord') => {
         try {
-            window.location.href = `${BE_BASE_URL}/oauth2/authorization/${provider}`;
+            if (!BE_BASE_URL) {
+                throw new Error('Backend URL is not configured');
+            }
+            const loginUrl = `${BE_BASE_URL}/oauth2/authorization/${provider}`;
+            console.log('Redirecting to:', loginUrl);
+            window.location.href = loginUrl;
         } catch (err) {
+            console.error('Login error:', err);
             setError('Failed to initiate login. Please try again.');
+            toast.error('Login failed. Please check your connection and try again.');
         }
     };
 

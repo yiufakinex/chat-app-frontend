@@ -20,7 +20,7 @@ const Navbar: React.FC<NavbarProps> = ({ user }) => {
                     </div>
                     <div className="flex items-center">
                         {isLoggedIn && (
-                            <span className="text-gray-700">
+                            <span className="text-white">
                                 Welcome, {user?.displayName || user?.username}
                             </span>
                         )}

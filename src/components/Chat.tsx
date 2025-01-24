@@ -30,6 +30,7 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
     const renameRef = useRef<HTMLInputElement>(null);
     const searchRef = useRef<HTMLInputElement>(null);
     const typingTimeoutRef = useRef<NodeJS.Timeout>();
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     const [chatSettingsMenu, setChatSettingsMenu] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>('');
@@ -44,9 +45,12 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
     const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
     const lastFetchTimeRef = useRef<number>(Date.now());
 
+    const scrollToBottom = () => {
+        scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
     useEffect(() => {
         webSocketApi.subscribeToChat(groupChat.id, (newMessage: Message) => {
-
             if (newMessage.sender.id === user.id && pendingMessages.has(newMessage.content)) {
                 setPendingMessages(prev => {
                     const newSet = new Set(prev);
@@ -58,9 +62,9 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
                     (m.id < 0 && m.content === newMessage.content) ? newMessage : m
                 ));
             } else {
-
                 setMessages(prev => [newMessage, ...prev]);
             }
+            scrollToBottom();
         });
 
         webSocketApi.subscribeToTyping(groupChat.id, (username, isTyping) => {
@@ -393,6 +397,7 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
                                 <MessageView message={message} key={`${message.id}-${index}`} />
                             ))}
                         </InfiniteScroll>
+                        <div ref={scrollRef} />
                     </div>
 
                     {/* Message Input Section */}

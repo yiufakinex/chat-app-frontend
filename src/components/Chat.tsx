@@ -8,12 +8,9 @@ import UsersView from './UsersView';
 import { User } from '../types/User';
 import { Settings, Send } from 'lucide-react';
 import apiClient from '../api/axios';
-import { debounce } from 'lodash';
+import { webSocketApi } from '../api/WebSocketApi';
 
-
-const POLLING_INTERVAL = 15000;
 const PAGE_SIZE = 30;
-const DEBOUNCE_DELAY = 1000;
 const MESSAGE_RATE_LIMIT = 500;
 
 interface ChatProp {
@@ -29,23 +26,61 @@ interface MessageResponse {
 }
 
 const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => {
-
     const messageRef = useRef<HTMLInputElement>(null);
     const renameRef = useRef<HTMLInputElement>(null);
     const searchRef = useRef<HTMLInputElement>(null);
-
+    const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
     const [chatSettingsMenu, setChatSettingsMenu] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [searchedUser, setSearchedUser] = useState<User | null>(null);
-
+    const [pendingMessages, setPendingMessages] = useState<Set<string>>(new Set());
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [pageNum, setPageNum] = useState<number>(0);
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [lastMessageSent, setLastMessageSent] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
     const lastFetchTimeRef = useRef<number>(Date.now());
+
+    useEffect(() => {
+        webSocketApi.subscribeToChat(groupChat.id, (newMessage: Message) => {
+
+            if (newMessage.sender.id === user.id && pendingMessages.has(newMessage.content)) {
+                setPendingMessages(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(newMessage.content);
+                    return newSet;
+                });
+
+                setMessages(prev => prev.map(m =>
+                    (m.id < 0 && m.content === newMessage.content) ? newMessage : m
+                ));
+            } else {
+
+                setMessages(prev => [newMessage, ...prev]);
+            }
+        });
+
+        webSocketApi.subscribeToTyping(groupChat.id, (username, isTyping) => {
+            if (username !== user.username) {
+                setTypingUsers((prev) => {
+                    const newSet = new Set(prev);
+                    if (isTyping) {
+                        newSet.add(username);
+                    } else {
+                        newSet.delete(username);
+                    }
+                    return newSet;
+                });
+            }
+        });
+
+        return () => {
+            webSocketApi.unsubscribeFromChat(groupChat.id);
+        };
+    }, [groupChat.id, user.id, user.username, pendingMessages]);
 
 
     const showError = useCallback((message: string, duration: number = 3000) => {
@@ -84,32 +119,6 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
         }
     }, [groupChat.id, pageNum, isLoading]);
 
-
-    const pollNewMessages = useCallback(async () => {
-        if (isLoading) return;
-
-        try {
-            const response = await apiClient.get<MessageResponse>(`/message/${groupChat.id}/get`, {
-                params: {
-                    pageSize: PAGE_SIZE,
-                    pageNum: 0,
-                    before: Date.now()
-                }
-            });
-
-            const newMessages = response.data.content;
-            if (newMessages.length > 0) {
-                setMessages(prevMessages => {
-                    const messageIds = new Set(prevMessages.map(m => m.id));
-                    const uniqueNewMessages = newMessages.filter(m => !messageIds.has(m.id));
-                    return [...uniqueNewMessages, ...prevMessages];
-                });
-                lastFetchTimeRef.current = Date.now();
-            }
-        } catch (e) {
-            console.error('Polling error:', e);
-        }
-    }, [groupChat.id, isLoading]);
 
 
     useEffect(() => {
@@ -156,17 +165,6 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
     }, [groupChat.id]);
 
 
-    useEffect(() => {
-        const debouncedPoll = debounce(pollNewMessages, DEBOUNCE_DELAY);
-        const intervalId = setInterval(debouncedPoll, POLLING_INTERVAL);
-
-        return () => {
-            clearInterval(intervalId);
-            debouncedPoll.cancel();
-        };
-    }, [pollNewMessages]);
-
-
     const sendMessage = useCallback(async () => {
         const currentTime = Date.now();
         if (currentTime - lastMessageSent < MESSAGE_RATE_LIMIT) {
@@ -178,6 +176,8 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
         if (!messageContent) return;
 
 
+        setPendingMessages(prev => new Set(prev).add(messageContent));
+
         const optimisticMessage: Message = {
             id: -Date.now(),
             content: messageContent,
@@ -187,29 +187,20 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
             sender: user
         };
 
-
         setMessages(prev => [optimisticMessage, ...prev]);
 
         try {
-            const response = await apiClient.post(`/message/send/${groupChat.id}`, {
-                content: messageContent
-            });
-
-
-            if (response.data) {
-                setMessages(prev => {
-                    const filtered = prev.filter(m => m.id !== optimisticMessage.id);
-                    return [response.data, ...filtered];
-                });
-            }
-
-            if (messageRef.current) {
-                messageRef.current.value = '';
-            }
+            await webSocketApi.sendMessage(groupChat.id, messageContent);
+            if (messageRef.current) messageRef.current.value = '';
             setLastMessageSent(currentTime);
         } catch (error) {
+            setPendingMessages(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(messageContent);
+                return newSet;
+            });
             setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
-
+            showError('Failed to send message');
         }
     }, [groupChat.id, lastMessageSent, showError, user]);
 
@@ -260,6 +251,18 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
         setTab('');
         refreshChats(true);
     }, [groupChat.id, refreshChats, setTab]);
+
+    const handleTyping = useCallback(() => {
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        webSocketApi.sendTypingNotification(groupChat.id, true);
+
+        typingTimeoutRef.current = setTimeout(() => {
+            webSocketApi.sendTypingNotification(groupChat.id, false);
+        }, 2000);
+    }, [groupChat.id]);
 
 
     return (
@@ -359,6 +362,15 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
                         className="flex-1 overflow-y-auto bg-gray-50 p-4"
                         id="messagesScroll"
                     >
+                        {/* Typing indicator */}
+                        {typingUsers.size > 0 && (
+                            <div className="text-sm text-gray-500 italic p-2">
+                                {Array.from(typingUsers).join(', ')}
+                                {typingUsers.size === 1 ? ' is ' : ' are '}
+                                typing...
+                            </div>
+                        )}
+
                         <InfiniteScroll
                             dataLength={messages.length}
                             next={loadOldMessages}
@@ -377,8 +389,8 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
                             }
                             scrollableTarget="messagesScroll"
                         >
-                            {messages.map((message) => (
-                                <MessageView message={message} key={message.id} />
+                            {messages.map((message, index) => (
+                                <MessageView message={message} key={`${message.id}-${index}`} />
                             ))}
                         </InfiniteScroll>
                     </div>
@@ -397,6 +409,7 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
                                 className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                                 placeholder={`Message ${groupChat.name}`}
                                 ref={messageRef}
+                                onKeyPress={handleTyping}
                             />
                             <button
                                 type="submit"

@@ -1,7 +1,6 @@
 import React, { ChangeEvent, useState, useCallback } from 'react';
 import "../css/global.css";
 import { User } from '../types/User';
-import { AxiosError } from 'axios';
 import UsersView from './UsersView';
 import { GroupChat } from '../types/GroupChat';
 import apiClient from '../api/axios';

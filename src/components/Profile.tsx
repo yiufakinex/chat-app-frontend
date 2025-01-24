@@ -1,7 +1,6 @@
 import React, { ChangeEvent, useState } from 'react';
 import "../css/global.css";
 import { DefaultPicture, User } from '../types/User';
-import { AxiosError } from 'axios';
 import apiClient from '../api/axios'
 
 interface ProfileProp {

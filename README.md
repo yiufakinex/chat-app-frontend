@@ -16,6 +16,9 @@ This is a relatively chat application created using React/TypeScript in the fron
 
 - OAuth 2.0 authentication
 - Custom group chat creation
+- Real-time messaging with WebSocket
+- Live typing indicators
+- Optimistic message updates
 - API rate limiting protection (120 requests/minute for authenticated users)
 
 ## Demo

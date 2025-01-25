@@ -68,7 +68,9 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
             } else {
                 setMessages(prev => [newMessage, ...prev]);
             }
-            scrollToBottom();
+
+
+            setTimeout(scrollToBottom, 0);
         });
 
         webSocketApi.subscribeToTyping(groupChat.id, (username, isTyping) => {

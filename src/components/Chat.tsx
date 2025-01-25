@@ -44,6 +44,7 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
     const lastFetchTimeRef = useRef<number>(Date.now());
+    const [notification, setNotification] = useState<{ sender: string; content: string } | null>(null);
 
     const scrollToBottom = () => {
         scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -256,6 +257,26 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
         refreshChats(true);
     }, [groupChat.id, refreshChats, setTab]);
 
+    useEffect(() => {
+        if (Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        webSocketApi.subscribeToNotifications(groupChat.id, (sender, content) => {
+            if (sender !== user.username) {
+
+                if (Notification.permission === 'granted') {
+                    new Notification(`${groupChat.name}`, {
+                        body: `${sender}: ${content}`
+                    });
+                }
+
+                setNotification({ sender, content });
+                setTimeout(() => setNotification(null), 3000);
+            }
+        });
+    }, [groupChat.id, groupChat.name, user.username]);
+
     const handleTyping = useCallback(() => {
         if (typingTimeoutRef.current) {
             clearTimeout(typingTimeoutRef.current);
@@ -372,6 +393,13 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
                                 {Array.from(typingUsers).join(', ')}
                                 {typingUsers.size === 1 ? ' is ' : ' are '}
                                 typing...
+                            </div>
+                        )}
+
+                        {/* Notification */}
+                        {notification && (
+                            <div className="px-4 py-3 bg-blue-100 border border-blue-400 text-blue-700 rounded mx-4 mt-4">
+                                <span className="font-bold">{notification.sender}</span>: {notification.content}
                             </div>
                         )}
 

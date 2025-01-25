@@ -131,6 +131,33 @@ class WebSocketApi {
         }
     }
 
+    async subscribeToNotifications(chatId: number, onNotification: (sender: string, content: string) => void): Promise<void> {
+        try {
+            await this.ensureConnected();
+
+            if (this.subscriptions[`notification_${chatId}`]) {
+                this.subscriptions[`notification_${chatId}`]();
+                delete this.subscriptions[`notification_${chatId}`];
+            }
+
+            if (!this.client?.connected || !this.client) {
+                throw new Error('WebSocket not connected');
+            }
+
+            const subscription = this.client.subscribe(
+                `/topic/notifications.${chatId}`,
+                (message: StompMessage) => {
+                    const notification = JSON.parse(message.body);
+                    onNotification(notification.sender, notification.content);
+                }
+            );
+
+            this.subscriptions[`notification_${chatId}`] = () => subscription.unsubscribe();
+        } catch (error) {
+            console.error('Failed to subscribe to notifications:', error);
+        }
+    }
+
     unsubscribeFromChat(chatId: number): void {
         const unsubscribeChat = this.subscriptions[`chat_${chatId}`];
         const unsubscribeTyping = this.subscriptions[`typing_${chatId}`];

@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import Profile from './components/Profile';
 import ChatPage from './pages/ChatPage';
@@ -29,7 +28,7 @@ const AppContent: React.FC = () => {
 
     return (
         <>
-            <Navbar user={user} />
+
             <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />

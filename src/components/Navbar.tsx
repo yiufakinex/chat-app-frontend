@@ -9,7 +9,7 @@ const Navbar: React.FC<NavbarProps> = ({ user }) => {
     const isLoggedIn = Boolean(user);
 
     return (
-        <nav className="bg-black shadow">
+        <nav className="bg-black shadow h-16">
             <div className="max-w-7xl mx-auto px-4">
                 <div className="flex justify-between h-16">
                     <div className="flex">

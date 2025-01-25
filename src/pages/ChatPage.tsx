@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { User } from '../types/User';
 import LeftPanel from '../components/LeftPanel';
+import Navbar from '../components/Navbar';
 import Chat from '../components/Chat';
 import NewChat from '../components/NewChat';
 import { GroupChat } from '../types/GroupChat';
@@ -66,89 +67,92 @@ const ChatPage: React.FC<ChatPageProp> = ({ user, setUser }) => {
     }, [tab]);
 
     return (
-        <div className="flex h-screen bg-gray-100">
-            <div className="flex w-full h-full max-w-7xl mx-auto">
-                <LeftPanel>
-                    <div className="p-4 border-b border-gray-200">
-                        <UsersView users={[user]} />
-                    </div>
-
-                    <div className="flex justify-between px-4 py-3 border-b border-gray-200">
-                        <button
-                            onClick={() => tabButtonClick("newChat")}
-                            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center"
-                        >
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            New Chat
-                        </button>
-                        <button
-                            onClick={() => tabButtonClick("profile")}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center"
-                        >
-                            <UserCircle className="w-4 h-4 mr-2" />
-                            Profile
-                        </button>
-                    </div>
-
-                    <div className="px-4 py-3 border-b border-gray-200">
-                        <button
-                            onClick={handleLogout}
-                            className="w-full px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 flex items-center justify-center"
-                            disabled={logout.isLoading}
-                        >
-                            <LogOut className="w-4 h-4 mr-2" />
-                            {logout.isLoading ? 'Logging out...' : 'Logout'}
-                        </button>
-                    </div>
-
-                    {isLoading ? (
-                        <div className="flex justify-center items-center p-4">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+        <div className="flex flex-col h-screen">
+            <Navbar user={user} />
+            <div className="flex flex-grow overflow-hidden">
+                <div className="flex w-full max-w-7xl mx-auto">
+                    <LeftPanel>
+                        <div className="p-4 border-b border-gray-200">
+                            <UsersView users={[user]} />
                         </div>
-                    ) : (
-                        <GroupChatsView
-                            groupChats={groupChats}
-                            tab={tab}
-                            setTab={setTab}
-                            fetchGroupChats={fetchGroupChats}
-                            groupChatId={groupChatId}
-                            setGroupChatId={setGroupChatId}
-                        />
-                    )}
-                </LeftPanel>
 
-                <RightPanel>
-                    {tab === 'newChat' && (
-                        <NewChat
-                            user={user}
-                            groupChats={groupChats}
-                            setGroupChats={setGroupChats}
-                            setTab={setTab}
-                        />
-                    )}
-                    {tab === 'profile' && (
-                        <Profile user={user} setUser={setUser} />
-                    )}
-                    {tab === 'chat' && groupChats.map((groupChat) =>
-                        groupChat.id === groupChatId ? (
-                            <Chat
-                                key={groupChat.id}
-                                groupChat={groupChat}
-                                refreshChats={refreshChats}
+                        <div className="flex justify-between px-4 py-3 border-b border-gray-200">
+                            <button
+                                onClick={() => tabButtonClick("newChat")}
+                                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center"
+                            >
+                                <MessageSquare className="w-4 h-4 mr-2" />
+                                New Chat
+                            </button>
+                            <button
+                                onClick={() => tabButtonClick("profile")}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center"
+                            >
+                                <UserCircle className="w-4 h-4 mr-2" />
+                                Profile
+                            </button>
+                        </div>
+
+                        <div className="px-4 py-3 border-b border-gray-200">
+                            <button
+                                onClick={handleLogout}
+                                className="w-full px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 flex items-center justify-center"
+                                disabled={logout.isLoading}
+                            >
+                                <LogOut className="w-4 h-4 mr-2" />
+                                {logout.isLoading ? 'Logging out...' : 'Logout'}
+                            </button>
+                        </div>
+
+                        {isLoading ? (
+                            <div className="flex justify-center items-center p-4">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                            </div>
+                        ) : (
+                            <GroupChatsView
+                                groupChats={groupChats}
+                                tab={tab}
+                                setTab={setTab}
+                                fetchGroupChats={fetchGroupChats}
+                                groupChatId={groupChatId}
+                                setGroupChatId={setGroupChatId}
+                            />
+                        )}
+                    </LeftPanel>
+
+                    <RightPanel>
+                        {tab === 'newChat' && (
+                            <NewChat
                                 user={user}
+                                groupChats={groupChats}
+                                setGroupChats={setGroupChats}
                                 setTab={setTab}
                             />
-                        ) : null
-                    )}
-                    {tab === '' && (
-                        <div className="flex items-center justify-center h-full">
-                            <div className="text-center">
-                                <h2 className="text-2xl font-semibold text-gray-800">Welcome to the Chat App!</h2>
-                                <p className="mt-2 text-gray-600">Select a chat or start a new conversation</p>
+                        )}
+                        {tab === 'profile' && (
+                            <Profile user={user} setUser={setUser} />
+                        )}
+                        {tab === 'chat' && groupChats.map((groupChat) =>
+                            groupChat.id === groupChatId ? (
+                                <Chat
+                                    key={groupChat.id}
+                                    groupChat={groupChat}
+                                    refreshChats={refreshChats}
+                                    user={user}
+                                    setTab={setTab}
+                                />
+                            ) : null
+                        )}
+                        {tab === '' && (
+                            <div className="flex items-center justify-center h-full">
+                                <div className="text-center">
+                                    <h2 className="text-2xl font-semibold text-gray-800">Welcome to the Chat App!</h2>
+                                    <p className="mt-2 text-gray-600">Select a chat or start a new conversation</p>
+                                </div>
                             </div>
-                        </div>
-                    )}
-                </RightPanel>
+                        )}
+                    </RightPanel>
+                </div>
             </div>
         </div>
     );

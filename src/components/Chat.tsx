@@ -47,7 +47,10 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
     const [notification, setNotification] = useState<{ sender: string; content: string } | null>(null);
 
     const scrollToBottom = () => {
-        scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+        const scrollContainer = document.getElementById('messagesScroll');
+        if (scrollContainer) {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }
     };
 
     useEffect(() => {

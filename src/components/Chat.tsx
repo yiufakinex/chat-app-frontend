@@ -263,24 +263,13 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
     }, [groupChat.id, refreshChats, setTab]);
 
     useEffect(() => {
-        if (Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
-
         webSocketApi.subscribeToNotifications(groupChat.id, (sender, content) => {
             if (sender !== user.username) {
-
-                if (Notification.permission === 'granted') {
-                    new Notification(`${groupChat.name}`, {
-                        body: `${sender}: ${content}`
-                    });
-                }
-
                 setNotification({ sender, content });
                 setTimeout(() => setNotification(null), 3000);
             }
         });
-    }, [groupChat.id, groupChat.name, user.username]);
+    }, [groupChat.id, user.username]);
 
     const handleTyping = useCallback(() => {
         if (typingTimeoutRef.current) {

@@ -158,20 +158,59 @@ class WebSocketApi {
         }
     }
 
-    unsubscribeFromChat(chatId: number): void {
-        const unsubscribeChat = this.subscriptions[`chat_${chatId}`];
-        const unsubscribeTyping = this.subscriptions[`typing_${chatId}`];
+    async subscribeToNewChats(userId: number, onNewChat: (notification: any) => void): Promise<void> {
+        try {
+            await this.ensureConnected();
 
+            if (!this.client?.connected) {
+                throw new Error('WebSocket not connected');
+            }
+
+            const subscription = this.client.subscribe(
+                `/topic/user.${userId}.chats`,
+                (message) => {
+                    const notification = JSON.parse(message.body);
+                    onNewChat(notification);
+                }
+            );
+
+            this.subscriptions[`new_chats_${userId}`] = () => subscription.unsubscribe();
+        } catch (error) {
+            console.error('Failed to subscribe to new chats:', error);
+        }
+    }
+
+    unsubscribeFromNewChats(userId: number): void {
+        const unsubscribeNewChats = this.subscriptions[`new_chats_${userId}`];
+        if (unsubscribeNewChats) {
+            unsubscribeNewChats();
+            delete this.subscriptions[`new_chats_${userId}`];
+        }
+    }
+
+    unsubscribeFromChat(chatId: number): void {
+
+        const unsubscribeChat = this.subscriptions[`chat_${chatId}`];
         if (unsubscribeChat) {
             unsubscribeChat();
             delete this.subscriptions[`chat_${chatId}`];
         }
 
+
+        const unsubscribeTyping = this.subscriptions[`typing_${chatId}`];
         if (unsubscribeTyping) {
             unsubscribeTyping();
             delete this.subscriptions[`typing_${chatId}`];
         }
+
+
+        const unsubscribeNotifications = this.subscriptions[`notification_${chatId}`];
+        if (unsubscribeNotifications) {
+            unsubscribeNotifications();
+            delete this.subscriptions[`notification_${chatId}`];
+        }
     }
+
 
     disconnect(): void {
         if (this.client?.connected) {

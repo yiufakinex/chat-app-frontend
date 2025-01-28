@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Bell, MessageCircle } from 'lucide-react';
 import { webSocketApi } from '../api/WebSocketApi';
 import { GroupChat } from '../types/GroupChat';
 import { Message } from '../types/Message';
+import { User } from '../types/User';
 
 interface GroupChatsViewProps {
     groupChats: GroupChat[];
@@ -11,6 +12,7 @@ interface GroupChatsViewProps {
     fetchGroupChats: () => void;
     groupChatId: number | undefined;
     setGroupChatId: (id: number) => void;
+    user: User;
 }
 
 interface Notification {
@@ -56,18 +58,20 @@ const GroupChatsView: React.FC<GroupChatsViewProps> = ({
     setTab,
     fetchGroupChats,
     groupChatId,
-    setGroupChatId
+    setGroupChatId,
+    user
 }) => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
 
-    const addNotification = (notification: Notification) => {
+    const addNotification = useCallback((notification: Notification) => {
         setNotifications(prev => [...prev, notification]);
         setTimeout(() => {
             setNotifications(prev => prev.filter(n => n !== notification));
         }, 5000);
-    };
+    }, []);
 
     useEffect(() => {
+
         groupChats.forEach(chat => {
             webSocketApi.subscribeToChat(chat.id, (newMessage: Message) => {
                 if (tab !== 'chat' || groupChatId !== chat.id) {
@@ -79,15 +83,27 @@ const GroupChatsView: React.FC<GroupChatsViewProps> = ({
                     ));
                 }
             });
+        });
 
+
+        webSocketApi.subscribeToNewChats(user.id, (notification) => {
+            addNotification(createNotification(
+                'room',
+                'New Chat Added',
+                notification.content,
+                notification.chatId
+            ));
+            fetchGroupChats();
         });
 
         return () => {
+
             groupChats.forEach(chat => {
                 webSocketApi.unsubscribeFromChat(chat.id);
             });
+            webSocketApi.unsubscribeFromNewChats(user.id);
         };
-    }, [groupChats, tab, groupChatId]);
+    }, [groupChats, tab, groupChatId, user.id, fetchGroupChats, addNotification]);
 
     const setChat = (groupChat: GroupChat) => {
         setTab("chat");

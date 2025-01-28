@@ -110,6 +110,7 @@ const ChatPage: React.FC<ChatPageProp> = ({ user, setUser }) => {
                             </div>
                         ) : (
                             <GroupChatsView
+                                user={user}
                                 groupChats={groupChats}
                                 tab={tab}
                                 setTab={setTab}

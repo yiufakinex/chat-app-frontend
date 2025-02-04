@@ -20,6 +20,8 @@ This is a relatively chat application created using React/TypeScript in the fron
 - Live typing indicators
 - Optimistic message updates
 - API rate limiting protection (120 requests/minute for authenticated users)
+- Real-time chat list updates
+- Real-time notifications system
 
 ## Demo
 

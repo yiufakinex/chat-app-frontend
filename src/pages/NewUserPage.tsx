@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useCreateNewUser } from '../api/UserApi';
+import { useCreateNewUser, useGetUser } from '../api/UserApi';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
 const NewUserPage: React.FC = () => {
     const [username, setUsername] = useState('');
     const createUser = useCreateNewUser();
+    const { refetch } = useGetUser();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -16,9 +17,12 @@ const NewUserPage: React.FC = () => {
         }
         try {
             await createUser.mutateAsync({ username });
-            navigate('/chat-app');
+
+            await refetch();
+            navigate('/chat-app', { replace: true });
         } catch (error) {
             console.error('Error creating user:', error);
+            toast.error('Failed to create user: ' + (error as Error).message);
         }
     };
 
@@ -32,6 +36,8 @@ const NewUserPage: React.FC = () => {
                             Choose your username:
                             <input
                                 type="text"
+                                id="username"
+                                name="username"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 className="w-full p-2 mt-1 rounded-md bg-gray-800 text-white border border-gray-700"

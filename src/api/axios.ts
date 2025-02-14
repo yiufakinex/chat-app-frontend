@@ -1,7 +1,11 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL; 
+let API_BASE_URL = process.env.REACT_APP_API_BASE_URL; 
+if (window.location.protocol === 'https:' && API_BASE_URL?.startsWith('http:')) {
+
+    API_BASE_URL = API_BASE_URL.replace('http:', 'https:');
+}
 
 interface ApiError {
     message: string;

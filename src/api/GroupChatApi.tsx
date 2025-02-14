@@ -20,7 +20,7 @@ interface AddGroupChatUserForm {
 
 export const useCreateGroupChat = () => {
     const createGroupChatRequest = async (form: NewGroupChatForm) => {
-        const response = await apiClient.post('/groupchat/new', form);
+        const response = await apiClient.post('/api/groupchat/new', form);
 
         if (response.status !== 200) {
             throw new Error('Failed to create group chat');
@@ -42,7 +42,7 @@ export const useCreateGroupChat = () => {
 
 export const useRenameGroupChat = () => {
     const renameGroupChatRequest = async (form: RenameGroupChatForm) => {
-        const response = await apiClient.post('/groupchat/rename', form);
+        const response = await apiClient.post('/api/groupchat/rename', form);
 
         if (response.status !== 200) {
             throw new Error('Failed to rename group chat');
@@ -64,7 +64,7 @@ export const useRenameGroupChat = () => {
 
 export const useAddGroupChatUser = () => {
     const addGroupChatUserRequest = async (form: AddGroupChatUserForm) => {
-        const response = await apiClient.post('/groupchat/adduser', form);
+        const response = await apiClient.post('/api/groupchat/adduser', form);
 
         if (response.status !== 200) {
             throw new Error('Failed to add user to group chat');
@@ -86,7 +86,7 @@ export const useAddGroupChatUser = () => {
 
 export const useListGroupChats = () => {
     const listGroupChatsRequest = async () => {
-        const response = await apiClient.get<GroupChat[]>('/groupchat/list');
+        const response = await apiClient.get<GroupChat[]>('/api/groupchat/list');
 
         if (response.status !== 200) {
             throw new Error('Failed to fetch group chats');
@@ -105,7 +105,7 @@ export const useListGroupChats = () => {
 
 export const useGetGroupChatMessages = (id: number, before?: number) => {
     const getGroupChatMessagesRequest = async () => {
-        const response = await apiClient.get(`/groupchat/messages`, {
+        const response = await apiClient.get('/api/groupchat/messages', {
             params: { id, before },
         });
 

@@ -9,7 +9,7 @@ interface NewMessageForm {
 
 export const useSendMessage = (id: number) => {
     const sendMessageRequest = async (newMessageForm: NewMessageForm) => {
-        const response = await apiClient.post(`/message/send/${id}`, newMessageForm);
+        const response = await apiClient.post(`/api/message/send/${id}`, newMessageForm);
 
         if (response.status !== 200) {
             throw new Error('Failed to send message');
@@ -30,7 +30,7 @@ export const useSendMessage = (id: number) => {
 
 export const useGetMessages = (id: number, before?: number) => {
     const getMessagesRequest = async () => {
-        const response = await apiClient.get<Message[]>(`/message/${id}/get`, {
+        const response = await apiClient.get<Message[]>(`/api/message/${id}/get`, {
             params: { before },
         });
 

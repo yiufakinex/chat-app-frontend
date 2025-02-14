@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 import apiClient, { clearAuthState } from './axios';
 import { toast } from 'sonner';
 import { User } from '../types/User';
@@ -12,16 +12,19 @@ interface UserResponse {
 
 export const useGetUser = () => {
     const getUserRequest = async () => {
-        const response = await apiClient.get<UserResponse>('/login/user');
-
-        if (response.status !== 200) {
-            throw new Error('Failed to fetch user');
+        try {
+            const response = await apiClient.get<UserResponse>('/api/login/user');
+            console.log('User response:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching user:', error);
+            throw error;
         }
-
-        return response.data;
     };
 
     return useQuery<UserResponse>('user', getUserRequest, {
+        retry: false,
+        refetchOnWindowFocus: false,
         onError: (err) => {
             const error = err as Error;
             toast.error(error.message);
@@ -34,36 +37,41 @@ interface NewUserParams {
 }
 
 export const useCreateNewUser = () => {
-    const createNewUserRequest = async (params: NewUserParams) => {
-        const formData = new URLSearchParams();
-        for (const [key, value] of Object.entries(params)) {
-            formData.append(key, value);
-        }
+    const queryClient = useQueryClient();
 
-        const response = await apiClient.post('/login/new_user', formData, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+    return useMutation(
+        async (params: NewUserParams) => {
+            const formData = new URLSearchParams();
+            for (const [key, value] of Object.entries(params)) {
+                formData.append(key, value);
+            }
+
+            const response = await apiClient.post('/api/login/new_user', formData, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                withCredentials: true,
+            });
+
+            return response.data;
+        },
+        {
+            onSuccess: () => {
+
+                queryClient.invalidateQueries('user');
+                toast.success('New user created successfully');
             },
-            withCredentials: true,
-        });
-
-        return response.data;
-    };
-
-    return useMutation(createNewUserRequest, {
-        onError: (err) => {
-            const error = err as Error;
-            toast.error(error.message);
-        },
-        onSuccess: () => {
-            toast.success('New user created successfully');
-        },
-    });
+            onError: (err) => {
+                const error = err as Error;
+                toast.error(error.message);
+            },
+        }
+    );
 };
 
 export const useSearchUser = (username: string) => {
     const searchUserRequest = async () => {
-        const response = await apiClient.get('/users/search', {
+        const response = await apiClient.get('/api/users/search', {
             params: { username },
         });
 
@@ -84,7 +92,7 @@ export const useSearchUser = (username: string) => {
 
 export const useUpdateDisplayName = () => {
     const updateDisplayNameRequest = async (displayName: string) => {
-        const response = await apiClient.patch('/users/update/display_name', null, {
+        const response = await apiClient.patch('/api/users/update/display_name', null, {
             params: { displayName },
         });
 
@@ -109,7 +117,7 @@ export const useUpdateDisplayName = () => {
 export const useLogout = () => {
     return useMutation(
         async () => {
-            const response = await apiClient.post('/logout');
+            const response = await apiClient.post('/api/logout');
             return response.data;
         },
         {

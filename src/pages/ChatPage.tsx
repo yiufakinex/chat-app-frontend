@@ -33,7 +33,7 @@ const ChatPage: React.FC<ChatPageProp> = ({ user, setUser }) => {
     const fetchGroupChats = useCallback(async () => {
         try {
             setIsLoading(true);
-            const response = await apiClient.get<GroupChatsResponse>('/groupchat/get');
+            const response = await apiClient.get<GroupChatsResponse>('/api/groupchat/get');
             setGroupChats(response.data.groupChats);
         } catch (error) {
             toast.error('Failed to fetch chats');

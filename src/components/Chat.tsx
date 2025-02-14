@@ -104,7 +104,7 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
 
         try {
             setIsLoading(true);
-            const response = await apiClient.get<MessageResponse>(`/message/${groupChat.id}/get`, {
+            const response = await apiClient.get<MessageResponse>(`/api/message/${groupChat.id}/get`, {
                 params: {
                     pageSize: PAGE_SIZE,
                     pageNum,

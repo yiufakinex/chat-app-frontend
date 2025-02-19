@@ -5,7 +5,9 @@
 <ol>
   <li><a href="#about">About</a></li>
   <li><a href="#features">Features</a></li>
+  <li><a href="#deployment">Deployment</a></li>
   <li><a href="#demo">Demo</a></li>
+  
 </ol>
 
 ## About
@@ -19,10 +21,16 @@ This is a relatively chat application created using React/TypeScript in the fron
 - Real-time messaging with WebSocket
 - Live typing indicators
 - Optimistic message updates
-- API rate limiting protection (120 requests/minute for authenticated users)
+- API rate limiting protection
 - Real-time chat list updates
 - Real-time notifications system
 
-## Demo
+## Deployment
 
-<br>
+- Hosted on AWS EC2
+- Nginx for static file serving
+- HTTPS/SSL encryption
+- WebSocket secure connection
+- DuckDNS domain integration
+
+## Demo

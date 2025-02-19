@@ -38,7 +38,7 @@ const NewChat: React.FC<NewChatProp> = ({ user, groupChats, setGroupChats, setTa
         if (!usernameInput.trim()) return;
 
         apiClient
-            .get("/users/search", {
+            .get("/api/users/search", {
                 params: { username: usernameInput }
             })
             .then((res) => {
@@ -66,7 +66,7 @@ const NewChat: React.FC<NewChatProp> = ({ user, groupChats, setGroupChats, setTa
         const usernames = users.map(user => user.username);
 
         apiClient
-            .post("/groupchat/new", {
+            .post("/api/groupchat/new", {
                 name: chatNameInput,
                 usernames: usernames
             })

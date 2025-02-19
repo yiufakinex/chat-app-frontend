@@ -137,7 +137,7 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
         const loadInitialMessages = async () => {
             try {
                 setIsLoading(true);
-                const response = await apiClient.get<MessageResponse>(`/message/${groupChat.id}/get`, {
+                const response = await apiClient.get<MessageResponse>(`/api/message/${groupChat.id}/get`, {
                     params: {
                         pageSize: PAGE_SIZE,
                         pageNum: 0,
@@ -220,7 +220,7 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
         if (!username) return;
 
         try {
-            const response = await apiClient.get<{ user: User | null }>('/users/search', {
+            const response = await apiClient.get<{ user: User | null }>('/api/users/search', {
                 params: { username }
             });
             setSearchedUser(response.data.user);
@@ -234,7 +234,7 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
         const newName = renameRef.current?.value?.trim();
         if (!newName) return;
 
-        await apiClient.patch(`/groupchat/${groupChat.id}/rename`, {
+        await apiClient.patch(`/api/groupchat/${groupChat.id}/rename`, {
             name: newName
         });
         if (renameRef.current) {
@@ -246,7 +246,7 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
     const addUser = useCallback(async () => {
         if (!searchedUser) return;
 
-        await apiClient.post(`/groupchat/${groupChat.id}/users/add`, {
+        await apiClient.post(`/api/groupchat/${groupChat.id}/users/add`, {
             username: searchedUser.username
         });
         if (searchRef.current) {
@@ -257,7 +257,7 @@ const Chat: React.FC<ChatProp> = ({ groupChat, refreshChats, user, setTab }) => 
     }, [groupChat.id, searchedUser, refreshChats]);
 
     const leaveChat = useCallback(async () => {
-        await apiClient.post(`/groupchat/${groupChat.id}/users/remove`);
+        await apiClient.post(`/api/groupchat/${groupChat.id}/users/remove`);
         setTab('');
         refreshChats(true);
     }, [groupChat.id, refreshChats, setTab]);

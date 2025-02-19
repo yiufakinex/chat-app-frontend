@@ -42,7 +42,7 @@ export const useCreateGroupChat = () => {
 
 export const useRenameGroupChat = () => {
     const renameGroupChatRequest = async (form: RenameGroupChatForm) => {
-        const response = await apiClient.post('/api/groupchat/rename', form);
+        const response = await apiClient.patch('/api/groupchat/rename', form);
 
         if (response.status !== 200) {
             throw new Error('Failed to rename group chat');

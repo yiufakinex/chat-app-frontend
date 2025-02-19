@@ -18,7 +18,7 @@ const Profile: React.FC<ProfileProp> = ({ user, setUser }) => {
 
     const updateDisplayName = () => {
         apiClient
-            .patch("/users/update/display_name", null, {
+            .patch("/api/users/update/display_name", null, {
                 params: { displayName: displayNameInput }
             })
             .then((res) => {

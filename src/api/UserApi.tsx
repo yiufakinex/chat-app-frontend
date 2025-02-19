@@ -92,7 +92,7 @@ export const useSearchUser = (username: string) => {
 
 export const useUpdateDisplayName = () => {
     const updateDisplayNameRequest = async (displayName: string) => {
-        const response = await apiClient.patch('/api/users/update/display_name', null, {
+        const response = await apiClient.post('/api/users/update/display_name', null, {
             params: { displayName },
         });
 

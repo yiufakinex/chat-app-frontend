@@ -12,7 +12,7 @@
 
 ## About
 
-This is a relatively chat application created using React/TypeScript in the frontend. Users can create accounts via OAuth 2.0, and form custom group chats.
+This is a relatively chat application created using React/TypeScript in the frontend. It leverages StompJS and SockJS (WebSocket) for real-time user communication and MySQL for data persistence. Users can create accounts via OAuth 2.0, form custom group chats, and exchange messages seamlessly. This application draws inspiration from earlier versions of Discord, aiming to deliver a robust and user-friendly chat experience.
 
 ## Features
 
@@ -34,3 +34,6 @@ This is a relatively chat application created using React/TypeScript in the fron
 - DuckDNS domain integration
 
 ## Demo
+![Chat App Demo](https://res.cloudinary.com/dls9pinnl/image/upload/t_chatappresize/v1742251907/chatapp_tsqv7p.png)
+
+[Live Demo](https://chatapp-franklin.duckdns.org/)
